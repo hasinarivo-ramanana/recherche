@@ -1,0 +1,10 @@
+# Serveur (REST /localize + WebSocket /ws)
+fastapi>=0.110
+uvicorn[standard]>=0.29      # inclut websockets/httptools, sert /ws sans dependance directe a `websockets`
+python-multipart>=0.0.9      # requis par FastAPI pour parser les uploads multipart (photo)
+
+# Cascade de localisation (niv1/2/3, inchange par rapport a votre app Python existante)
+numpy
+Pillow
+opencv-python
+ai-edge-litert                # backend TFLite recommande (cf. level1_apr.py) ; sinon: tensorflow
