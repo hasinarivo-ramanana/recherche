@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="rotate_left">\u21BA</string>
+    <string name="rotate_right">\u21BB</string>
+    <string name="move_forward">\u25B2</string>
+    <string name="move_back">\u25BC</string>
+    <string name="close_manipulation">Terminer</string>
+    <string name="guidance_target_format">Direction : %1$s</string>
+    <string name="guidance_distance_format">%1$.0f m</string>
+    <string name="guidance_arrived">Vous etes arrive ! Touchez l\'objet pour le manipuler.</string>
+    <string name="manipulation_title_format">Manipulation : %1$s</string>
+    <string name="placement_mode_button">Placer un objet ici</string>
+    <string name="placement_type_chaise">Chaise</string>
+    <string name="placement_type_table">Table</string>
+    <string name="placement_type_ordinateur">Ordinateur</string>
+</resources>

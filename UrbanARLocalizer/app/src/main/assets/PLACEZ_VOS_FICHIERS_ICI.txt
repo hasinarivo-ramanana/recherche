@@ -1,0 +1,7 @@
+Placez ici les fichiers suivants (voir README.md racine, section 2) :
+  - apr_model.tflite
+  - apr_norm_params.json
+  - yolo_model.tflite
+  - sig_data.geojson
+  - points3D.ply
+  - database.db

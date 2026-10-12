@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <io.github.sceneview.ar.ARSceneView
+        android:id="@+id/sceneView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <TextView
+        android:id="@+id/arStatusText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="#88000000"
+        android:textColor="#FFFFFF"
+        android:padding="12dp"
+        android:text="" />
+
+    <!-- Mini-carte OSM, coin superieur droit : objets geolocalises + position courante -->
+    <org.osmdroid.views.MapView
+        android:id="@+id/miniMapView"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="56dp"
+        android:layout_marginEnd="12dp"
+        android:background="#FFFFFFFF" />
+
+    <!-- Bandeau de guidage : distance + direction vers l'objet selectionne sur la mini-carte -->
+    <LinearLayout
+        android:id="@+id/guidancePanel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginTop="56dp"
+        android:layout_marginStart="12dp"
+        android:background="#CC000000"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/guidanceTargetText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/guidanceDistanceText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+    <!-- Panneau de manipulation : visible uniquement une fois l'objet atteint -->
+    <LinearLayout
+        android:id="@+id/manipulationPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#CC000000"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/manipulationTitleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="4">
+
+            <Button android:id="@+id/rotateLeftButton" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:text="@string/rotate_left" />
+            <Button android:id="@+id/rotateRightButton" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:text="@string/rotate_right" />
+            <Button android:id="@+id/moveForwardButton" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:text="@string/move_forward" />
+            <Button android:id="@+id/moveBackButton" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:text="@string/move_back" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/colorSwatchRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:gravity="center" />
+
+        <Button
+            android:id="@+id/closeManipulationButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:text="@string/close_manipulation" />
+    </LinearLayout>
+
+    <!-- Boutons du bas : "Localiser ma position" (declenche la cascade + journal txt) au-dessus
+         de "Voir la carte", empiles verticalement et centres. -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="24dp"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <Button
+            android:id="@+id/localiserPositionButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="@string/localiser_position_button" />
+
+        <Button
+            android:id="@+id/viewMapButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/view_map_button" />
+
+    </LinearLayout>
+
+    <!-- Ecran de chargement : visible pendant l'initialisation (modeles TFLite, nuage COLMAP,
+         copie/telechargement de database.db) qui s'execute desormais hors du thread principal
+         (cf. ArNavigationActivity.onCreate) pour eviter l'ANR "Input dispatching timed out". -->
+    <LinearLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FF000000"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="visible">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/loadingStatusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textColor="#FFFFFF"
+            android:text="@string/loading_engines" />
+
+    </LinearLayout>
+
+</FrameLayout>

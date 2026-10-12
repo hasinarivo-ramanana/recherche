@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <!-- Requis UNIQUEMENT par ColmapDatabaseReader.fromLocalDownloadsFolder (lecture de
+         Download/arlocalizer/database.db). Accordee manuellement par l'utilisateur : Parametres >
+         Applications > acces special > "Tous les fichiers". Non requise si vous utilisez plutot
+         fromAssets ou fromUrl : retirez cette ligne dans ce cas. -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
+    <uses-feature android:name="android.hardware.camera.ar" android:required="true" />
+    <uses-feature android:glEsVersion="0x00030000" android:required="true" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@android:mipmap/sym_def_app_icon"
+        android:label="Urban AR Localizer"
+        android:theme="@style/Theme.UrbanARLocalizer"
+        android:usesCleartextTraffic="true">
+
+        <!-- ARCore est obligatoire (pas de mode "optional"). tools:replace est necessaire car la
+             bibliotheque ARCore (com.google.ar:core) declare deja ce meme meta-data dans son propre
+             manifeste (avec une valeur par defaut differente) : sans cette instruction de fusion
+             explicite, Gradle refuse l'ambiguite et l'etape processDebugMainManifest echoue
+             ("Manifest merger failed"). -->
+        <meta-data
+            android:name="com.google.ar.core"
+            android:value="required"
+            tools:replace="android:value" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ar.ArNavigationActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".map.MapActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+    </application>
+</manifest>

@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Urban AR Localizer</string>
+    <string name="localization_subtitle">Localisation visuelle hierarchique (APR + YOLO/SIG + PG-PnP) et navigation en realite augmentee</string>
+    <string name="start_navigation">Demarrer la navigation</string>
+    <string name="permissions_required">Camera et localisation requises pour continuer</string>
+    <string name="loading_engines">Chargement des moteurs de localisation…\n(peut prendre du temps au premier lancement)</string>
+    <string name="loading_failed_format">Echec du chargement : %1$s</string>
+    <string name="localization_status_format">Niveau %1$d — lat %2$.6f, lon %3$.6f (±%4$.1f m)</string>
+    <string name="save_map_button">Enregistrer la carte</string>
+    <string name="export_csv_button">Exporter CSV</string>
+    <string name="view_map_button">Voir la carte</string>
+    <string name="localiser_position_button">Localiser ma position</string>
+    <string name="export_txt_button">Exporter txt</string>
+    <string name="txt_export_empty">Aucune localisation a exporter pour le moment</string>
+    <string name="txt_exported_format">Fichier txt exporte : %1$s</string>
+    <string name="txt_export_failed">Echec de l\'export du fichier txt</string>
+    <string name="map_status_format">Points enregistres — Niveau 1 (rouge): %1$d · Niveau 2 (bleu): %2$d · Niveau 3 (vert): %3$d</string>
+    <string name="map_marker_title_format">Niveau %1$d</string>
+    <string name="map_marker_snippet_format">lat=%1$.6f, lon=%2$.6f — %3$s</string>
+    <string name="map_saved_format">Carte enregistree : %1$s</string>
+    <string name="map_save_failed">Echec de l\'enregistrement de la carte</string>
+    <string name="csv_export_empty">Aucune donnee a exporter pour le moment</string>
+    <string name="csv_exported_format">CSV exporte : %1$s</string>
+    <string name="csv_export_failed">Echec de l\'export CSV</string>
+    <string name="ar_tracking_lost">Suivi ARCore perdu — deplacez lentement l\'appareil pour re-detecter l\'environnement</string>
+</resources>
