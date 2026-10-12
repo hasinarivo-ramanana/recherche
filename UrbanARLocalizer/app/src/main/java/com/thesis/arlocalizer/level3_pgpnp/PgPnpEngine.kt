@@ -38,7 +38,7 @@ class PgPnpEngine(
     private var cy: Double = 540.0,
     private val filterRadiusM: Double = 60.0,      // r = 3*sigma_t, sigma_t ~= 20 m
     private val reprojThresholdPx: Double = 4.0,   // epsilon, seuil d'inlier RANSAC
-    private val minInliers: Int = 6,
+    private val minInliers: Int = 4,
     private val ransacIterations: Int = 60,        // borne haute apres filtrage+ponderation (Tableau ransac_iterations)
     private val sigmaTApr: Double = 20.0           // sigma_t, ecart-type de l'erreur de position APR (m)
 ) {
