@@ -42,6 +42,7 @@ import com.thesis.arlocalizer.service.LocalizerServiceLocator
 import com.thesis.arlocalizer.util.CascadeLogFormatter
 import com.thesis.arlocalizer.util.CompassProvider
 import com.thesis.arlocalizer.util.ImageUtils
+import com.thesis.arlocalizer.util.SessionMetricsRecorder
 import com.thesis.arlocalizer.util.TxtLogExporter
 import io.github.sceneview.ar.ARSceneView
 import io.github.sceneview.ar.node.AnchorNode
@@ -113,6 +114,14 @@ class ArNavigationActivity : AppCompatActivity() {
         setContentView(R.layout.activity_ar_navigation)
         statusView = findViewById(R.id.arStatusText)
         sceneView = findViewById(R.id.sceneView)
+
+        // ---- Metriques de session (tableau 5.3) : le CSV est ecrit dans Download/ a la fin de la
+        //      session (onDestroy), sans bouton. Hook par frame ARCore pour FPS + distance parcourue. ----
+        SessionMetricsRecorder.startSession()
+        sceneView.onSessionUpdated = { _, frame ->
+            val pose = if (frame.camera.trackingState == TrackingState.TRACKING) poseFromArCore(frame) else null
+            SessionMetricsRecorder.onFrame(pose)
+        }
 
         compassProvider = CompassProvider(applicationContext)
 
@@ -207,6 +216,12 @@ class ArNavigationActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         compassProvider.stop()
+    }
+
+    override fun onDestroy() {
+        // Ecrit metriques_session_AAAAMMJJ_HHMMSS.csv dans Download/ (idempotent).
+        SessionMetricsRecorder.endSession(applicationContext)
+        super.onDestroy()
     }
 
     // ==================================================================================
@@ -393,7 +408,10 @@ class ArNavigationActivity : AppCompatActivity() {
 
             // logDetails = true : ce cycle alimente le fichier txt (details des etapes), en plus
             // de la bande de statut habituelle.
-            val result = runCascadeAndRecord(bitmap, heading, arCorePose, focalPx, intrinsics, logDetails = true)
+            val result = runCascadeAndRecord(
+                bitmap, heading, arCorePose, focalPx, intrinsics,
+                logDetails = true, planeDistanceM = planeDistanceFromArCore(frame)
+            )
             applyLocalizationResult(result)
         }
     }
@@ -415,7 +433,10 @@ class ArNavigationActivity : AppCompatActivity() {
                         val intrinsics = cameraIntrinsicsFromArCore(frame)
                         // logDetails = false : la phase CRDT continue n'alourdit pas le fichier txt,
                         // qui reste dedie aux clics explicites sur "Localiser ma position".
-                        val result = runCascadeAndRecord(bitmap, heading, arCorePose, focalPx, intrinsics, logDetails = false)
+                        val result = runCascadeAndRecord(
+                            bitmap, heading, arCorePose, focalPx, intrinsics,
+                            logDetails = false, planeDistanceM = planeDistanceFromArCore(frame)
+                        )
                         applyLocalizationResult(result)
                     }
                 } else {
@@ -479,15 +500,36 @@ class ArNavigationActivity : AppCompatActivity() {
         }
     }
 
+    /** Distance (m) au premier plan/point ARCore touche au centre de l'ecran (terme d de e_px = e_m*f/d), ou null. */
+    private fun planeDistanceFromArCore(frame: Frame): Double? = try {
+        frame.hitTest(sceneView.width / 2f, sceneView.height / 2f)
+            .firstOrNull()?.distance?.toDouble()
+            ?.takeIf { it in 0.3..50.0 }
+    } catch (e: Exception) {
+        null
+    }
+
     private suspend fun runCascadeAndRecord(
         frameBitmap: Bitmap,
         heading: Double,
         arCorePose: Pose3D,
         focalPx: Double?,
         cameraIntrinsics: DoubleArray?,
-        logDetails: Boolean = false
+        logDetails: Boolean = false,
+        planeDistanceM: Double? = null
     ): LocalizationOrchestrator.CascadeResult {
+        // Metriques : snapshot de T_AR->WGS filtree AVANT la mise a jour du Kalman (faite en interne
+        // par l'orchestrateur), puis calcul de l'erreur apres la cascade.
+        val pam = LocalizerServiceLocator.getPoseAnchorManager()
+        SessionMetricsRecorder.beforeLocalize(pam)
         val result = orchestrator.localize(frameBitmap, heading, arCorePose, focalPx, cameraIntrinsics)
+        SessionMetricsRecorder.afterLocalize(
+            result = result,
+            arCorePoseAtCapture = arCorePose,
+            pam = pam,
+            focalPx = cameraIntrinsics?.get(0) ?: focalPx,
+            planeDistanceM = planeDistanceM ?: SessionMetricsRecorder.DEFAULT_PLANE_DISTANCE_M
+        )
         val timestampMs = System.currentTimeMillis()
         LocalizationHistoryRepository.add(
             LocalizationRecord(
