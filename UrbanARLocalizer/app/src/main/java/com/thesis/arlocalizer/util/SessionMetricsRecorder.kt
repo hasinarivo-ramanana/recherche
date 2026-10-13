@@ -16,10 +16,7 @@ import kotlin.math.sqrt
  * Collecte, pendant une session AR, les metriques du tableau 5.3 (erreur initiale, drift apres
  * 100 m / 5 min, FPS, temps de localisation, recalibrations/min) avec statistiques completes
  * (n, moyenne, ecart-type, mediane, min, max), puis ecrit automatiquement un CSV dans Download/
- * a la fin de la session (aucun bouton).
- *
- * Conversion pixels <-> metres :  e_m ~ e_px * d / f   <=>   e_px = e_m * f / d
- *   f = focale en pixels, d = distance au plan observe.
+ * a la fin de la session.
  *
  * Reference de "verite" : la pose issue de la cascade (niveau >= MIN_REFERENCE_LEVEL).
  */
