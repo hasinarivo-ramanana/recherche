@@ -36,6 +36,11 @@ object CsvExporter {
         }
     }
 
+    /** Ecrit un contenu texte quelconque dans Download/ (meme mecanisme que exportToDownloads). */
+    fun exportTextToDownloads(context: Context, fileName: String, content: String): String? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) exportViaMediaStore(context, fileName, content)
+        else exportLegacy(fileName, content)
+
     private fun buildCsvContent(records: List<LocalizationRecord>): String {
         val sb = StringBuilder(CSV_HEADER)
         val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.US)
