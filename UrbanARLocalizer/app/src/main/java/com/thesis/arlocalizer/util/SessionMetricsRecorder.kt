@@ -15,8 +15,8 @@ import kotlin.math.sqrt
 /**
  * Collecte, pendant une session AR, les metriques du tableau 5.3 (erreur initiale, drift apres
  * 100 m / 5 min, FPS, temps de localisation, recalibrations/min) avec statistiques completes
- * (n, moyenne, ecart-type, mediane, min, max), puis ecrit automatiquement un CSV dans Download/
- * a la fin de la session.
+ * (n, moyenne, ecart-type, mediane, min, max, IC 95%), puis ecrit automatiquement un CSV dans
+ * Download/ a la fin de la session.
  *
  * Reference de "verite" : la pose issue de la cascade (niveau >= MIN_REFERENCE_LEVEL).
  */
@@ -206,7 +206,7 @@ object SessionMetricsRecorder {
 
         // ---- Resume statistique (tableau 5.3) ----
         sb.append("\n# RESUME (pour le tableau 5.3)\n")
-        sb.append("metrique;condition;unite;n;moyenne;ecart_type;mediane;min;max\n")
+        sb.append("metrique;condition;unite;n;moyenne;ecart_type;mediane;min;max;ic95_bas;ic95_haut\n")
 
         val initial = ref.take(INITIAL_SAMPLES)
         sb.append(statsRow("erreur_initiale", "avec_poseanchor", "px", initial.map { it.errWithPx }))
@@ -241,14 +241,56 @@ object SessionMetricsRecorder {
         return sb.toString()
     }
 
+    /**
+     * Calcule les stats descriptives + un IC a 95% sur la moyenne.
+     *
+     *   IC95 = moyenne +/- t(0.975, n-1) * s / sqrt(n)
+     *
+     * - s est l'ecart-type empirique (denominateur n-1).
+     * - t(0.975, n-1) est le quantile de Student bilateral.
+     * - Si n < 2, l'IC n'est pas calculable (division par sqrt(n-1) et df=0) -> NA.
+     */
     private fun statsRow(metric: String, cond: String, unit: String, v: List<Double>): String {
-        if (v.isEmpty()) return "$metric;$cond;$unit;0;NA;NA;NA;NA;NA\n"
+        if (v.isEmpty()) {
+            return "$metric;$cond;$unit;0;NA;NA;NA;NA;NA;NA;NA\n"
+        }
+        val n = v.size
         val mean = v.average()
-        val std = if (v.size > 1) sqrt(v.sumOf { (it - mean).pow(2) } / (v.size - 1)) else 0.0
+        val std = if (n > 1) sqrt(v.sumOf { (it - mean).pow(2) } / (n - 1)) else 0.0
         val sorted = v.sorted()
-        val median = if (sorted.size % 2 == 1) sorted[sorted.size / 2]
-        else (sorted[sorted.size / 2 - 1] + sorted[sorted.size / 2]) / 2.0
-        return "$metric;$cond;$unit;${v.size};${f(mean)};${f(std)};${f(median)};${f(sorted.first())};${f(sorted.last())}\n"
+        val median = if (n % 2 == 1) sorted[n / 2]
+                     else (sorted[n / 2 - 1] + sorted[n / 2]) / 2.0
+
+        // ---- IC 95% sur la moyenne ----
+        val (ciLow, ciHigh) = if (n > 1) {
+            val t = tQuantile975(n - 1)
+            val halfWidth = t * std / sqrt(n.toDouble())
+            (mean - halfWidth) to (mean + halfWidth)
+        } else {
+            Double.NaN to Double.NaN
+        }
+
+        val ciLowStr  = if (ciLow.isNaN())  "NA" else f(ciLow)
+        val ciHighStr = if (ciHigh.isNaN()) "NA" else f(ciHigh)
+
+        return "$metric;$cond;$unit;$n;${f(mean)};${f(std)};${f(median)};" +
+               "${f(sorted.first())};${f(sorted.last())};$ciLowStr;$ciHighStr\n"
+    }
+
+    /**
+     * Quantile bilateral t(0.975, df) de la loi de Student.
+     * - df = 1..30 : table exacte.
+     * - df > 30   : approximation par la loi normale (1.96), suffisante pour n > 31.
+     *   (erreur < 5% pour df >= 30, negligeable pour df >= 60.)
+     */
+    private fun tQuantile975(df: Int): Double {
+        if (df <= 0) return Double.NaN
+        val table = doubleArrayOf(
+            12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228,
+             2.201, 2.179, 2.160, 2.145, 2.131, 2.120, 2.110, 2.101, 2.093, 2.086,
+             2.080, 2.074, 2.069, 2.064, 2.060, 2.056, 2.052, 2.048, 2.045, 2.042
+        )
+        return if (df <= 30) table[df - 1] else 1.96
     }
 
     private fun f(x: Double): String = String.format(Locale.US, "%.3f", x)
